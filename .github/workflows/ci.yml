@@ -1,0 +1,44 @@
+name: Lint and Test
+run-name: "Lint and Test: ${{ github.event.head_commit.message || github.event.pull_request.title }}"
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  ci:
+    name: Lint and Test
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout first so setup-go can read go.sum for cache keys.
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version: 'stable'
+
+      # --- Linting ---
+      - name: YAML Lint
+        uses: ibiqlik/action-yamllint@v3
+        with:
+          config_file: .yamllint
+      - name: Go Lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: latest
+          args: --verbose
+
+      # --- Security ---
+      - name: Govulncheck
+        uses: golang/govulncheck-action@v1
+        with:
+          repo-checkout: false
+
+      # --- Tests ---
+      - name: Go Tests
+        run: go test -race ./... -coverprofile=cover.out
+      - name: Coverage
+        uses: vladopajic/go-test-coverage@v2
+        with:
+          config: ./.testcoverage.yml
