@@ -81,8 +81,7 @@ func New(opts ...Option) (*SyntheticAlert, error) {
 
 // Value returns 1 if the synthetic alert should be firing right now and 0
 // otherwise. It replays every schedule transition between the last call and
-// now, so the firings stay an honest Poisson process whatever the scrape
-// cadence.
+// now, so the realized schedule is the same whatever the scrape cadence.
 func (a *SyntheticAlert) Value() float64 {
 	// Why carry state and replay transitions, rather than compute the state
 	// from the clock alone?

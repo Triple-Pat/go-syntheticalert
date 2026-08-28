@@ -69,9 +69,10 @@ so the alert visibly resolves between firings, and never more than two
 hours, so the check-in timer can be sized. The truncation pulls the
 realized mean gap down to about 49 minutes and makes the process only
 roughly Poisson. If you need the PASTA property and can tolerate wider
-variation in start times, set a lower min and a higher max (and, for the
-last few percent, a longer mean relative to the firing duration), then size
-the timer for the larger max.
+variation in start times, set a lower min and a higher max, then size the
+timer for the larger max. For the last few percent, use a mean much longer
+than the firing duration, since the interval between firing starts is the
+firing plus the gap.
 
 The schedule advances lazily, at scrape time. If nobody scrapes for a
 while, the next scrape replays every transition it missed, so the process
