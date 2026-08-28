@@ -17,6 +17,7 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version: 'stable'
+          cache: false # a zero-dependency module has no go.sum for the cache key
 
       # --- Linting ---
       - name: YAML Lint
