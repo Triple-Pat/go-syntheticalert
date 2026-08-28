@@ -1,0 +1,7 @@
+profile: cover.out
+
+# Coverage thresholds, in percent.
+threshold:
+  file: 100
+  package: 100
+  total: 100

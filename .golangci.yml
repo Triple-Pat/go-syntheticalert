@@ -1,0 +1,111 @@
+version: "2"
+run:
+  issues-exit-code: 1
+  tests: true
+
+output:
+  formats:
+    text:
+      path: stdout
+      print-linter-name: true
+      print-issued-lines: true
+  sort-order:
+    - severity
+    - linter
+    - file
+
+linters:
+  default: all
+  disable:
+    - exhaustruct # HTTP servers (among others) are designed to be non-exhaustive.
+    - exhaustruct_v5 # As above; exhaustruct was renamed and auto-enables via default: all.
+    - funlen # Long functions are not as bad as we used to think.
+    - gochecknoglobals # globals aren't evil. Love of globals is. Also, prometheus metrics are often globals.
+    - godox # Comments should be allowed to contain TODO or HACK or BUG.
+    - inamedparam # You shouldn't always need to name params in interfaces.
+    - ireturn # https://github.com/go-proverbs/go-proverbs.github.io/issues/37#issuecomment-571288298
+    - nlreturn # You don't need a blank line before every return.
+    - tagliatelle # Too many struct tags come from sources we don't control.
+    - testpackage # I support whitebox testing.
+    - varnamelen # db is a good name for a database, f for a function, etc..
+    - wrapcheck # You don't have to always wrap errors.
+    - wsl # I support a greater code density than this tool does.
+    - wsl_v5 # I also support a greater code density than this tool does.
+    - funcorder # Functions may be defined in any order within a file.
+    - gomodguard # Deprecated; replaced by gomodguard_v2 which auto-enables via default: all.
+  settings:
+    depguard:
+      rules:
+        prevent_unmaintained_packages:
+          list-mode: strict # Be stricter.
+          files:
+            - $all # Look at every file.
+          allow:
+            - $gostd
+            - github.com/triple-pat/
+    gosec:
+      excludes:
+        - G706 # slog structured logging is not vulnerable to log injection.
+    errcheck:
+      disable-default-exclusions: true # Be stricter.
+    gocritic:
+      enable-all: true # Be stricter.
+      disabled-checks:
+        - unnamedResult # This enforces a style I do not like.
+    paralleltest:
+      ignore-missing: true  # No need to put t.Parallel() everywhere.
+    revive:
+      enable-all-rules: true # Be stricter, with the following exceptions...
+      rules:
+        - name: unused-parameter # It is okay to start unused param names with a _
+          arguments:
+            - allow-regex: "^_"
+        - name: function-length  # Long functions are not all bad.
+          disabled: true
+        - name: max-public-structs  # Declaring lots of structs is fine.
+          disabled: true
+        - name: confusing-naming # It is okay to have both function() and Function() defined.
+          disabled: true
+        - name: import-alias-naming # It is okay to have underscores in import aliases.
+          disabled: true
+        # These remaining  sub-linters are disabled because other linters do them.
+        - name: line-length-limit
+          disabled: true
+        - name: add-constant
+          disabled: true
+        - name: cognitive-complexity
+          disabled: true
+        - name: cyclomatic
+          disabled: true
+        - name: unchecked-type-assertion
+          disabled: true
+    testifylint:
+      enable-all: true # Be stricter.
+    usetesting:  # Be stricter.
+      context-background: true
+      context-todo: true
+      os-chdir: true
+      os-mkdir-temp: true
+      os-setenv: true
+      os-temp-dir: true
+      os-create-temp: true
+    govet: # Be stricter.
+      enable-all: true
+  exclusions:
+    rules:
+      # Repeated string literals in tests (table-driven test names,
+      # fixture values) are clearer left inline than hoisted to constants.
+      - path: _test\.go
+        linters:
+          - goconst
+
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
