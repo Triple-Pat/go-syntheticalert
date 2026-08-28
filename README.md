@@ -138,9 +138,12 @@ receivers:
   - name: triplepat
     webhook_configs:
       - url: https://triplepat.com/api/v1/checkin/YOUR-TIMER-UUID
+        send_resolved: false
 ```
 
-Or as an email to `YOUR-TIMER-UUID@checkin.triplepat.com`.
+`send_resolved: false` keeps the resolve notification from counting as a
+second check-in, so one firing is one check-in. Or as an email to
+`YOUR-TIMER-UUID@checkin.triplepat.com`.
 
 ## Sizing the timer
 
