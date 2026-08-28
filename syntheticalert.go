@@ -36,9 +36,11 @@ import (
 //
 // Each firing holds Value at 1 for exactly the firing duration. The silent
 // gap between firings, from the end of one to the start of the next, is
-// exponentially distributed (memoryless) with the configured mean, truncated
-// to the configured min and max. The firings form a Poisson process and so
-// cannot synchronize with cron jobs or with each other.
+// exponentially distributed (memoryless) with the configured mean: an attempt
+// at a Poisson process, which cannot synchronize with cron jobs or scrape
+// cycles. As a nod to practicality the gap is truncated to the configured min
+// and max, which makes the process only roughly Poisson; widen the bounds to
+// get closer.
 //
 // The schedule advances lazily: nothing happens until Value is called, at
 // which point every transition up to time.Now() is replayed. Value is safe

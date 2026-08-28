@@ -59,15 +59,19 @@ _, err = meter.RegisterCallback(func(_ context.Context, o metric.Observer) error
 
 Each firing holds the gauge at 1 for exactly 10 minutes. The silent gap
 between firings — from the end of one to the start of the next — is
-memoryless (exponentially distributed with a configured mean of one hour;
-the 10-minute and two-hour bounds pull the realized average down to about
-49 minutes), never more than two hours, and never less than 10 minutes, so
-the alert always visibly resolves between firings. The firings form a
-Poisson process, and the
+memoryless: exponentially distributed with a mean of one hour. That makes
+the firings an attempt at a Poisson process, which cannot synchronize with
+cron jobs or scrape cycles, and which by the
 [PASTA theorem](https://en.wikipedia.org/wiki/Arrival_theorem#Theorem_for_arrivals_governed_by_a_Poisson_process)
-means that this synthetic alert will not accidentally synchronize with other
-periodic processes in your system. This is mathematically complex, but it is
-almost certainly what you want.
+sees your pipeline as it typically is rather than at some special moment.
+As a nod to practicality the gap is truncated: never less than 10 minutes,
+so the alert visibly resolves between firings, and never more than two
+hours, so the check-in timer can be sized. The truncation pulls the
+realized mean gap down to about 49 minutes and makes the process only
+roughly Poisson. If you need the PASTA property and can tolerate wider
+variation in start times, set a lower min and a higher max (and, for the
+last few percent, a longer mean relative to the firing duration), then size
+the timer for the larger max.
 
 The schedule advances lazily, at scrape time. If nobody scrapes for a
 while, the next scrape replays every transition it missed, so the process
