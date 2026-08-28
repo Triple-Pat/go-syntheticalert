@@ -31,11 +31,11 @@ func TestZeroWidthWindowIsPeriodic(t *testing.T) {
 }
 
 func TestGapSurvivesAMaxFarBeyondTheMean(t *testing.T) {
-	// exp(-max/mean) goes subnormal around 700 means and is exactly 0 beyond
-	// about 745; a CDF-space draw would hand log() a zero for the largest
-	// random value. Survival-space sampling must stay finite and in bounds in
-	// both regions.
-	for _, ratio := range []int{700, 1_000_000} {
+	// exp(-max/mean) goes subnormal past about 708 means and is exactly 0
+	// beyond about 745; a CDF-space draw would hand log() a zero for the
+	// largest random value. Survival-space sampling must stay finite and in
+	// bounds in both regions.
+	for _, ratio := range []int{730, 1_000_000} {
 		maxGap := time.Duration(ratio) * time.Second
 		alert, err := New(WithMeanInterval(time.Second), WithMinInterval(time.Second),
 			WithMaxInterval(maxGap), WithFiringDuration(time.Second/2))

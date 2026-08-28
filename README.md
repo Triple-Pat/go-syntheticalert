@@ -146,8 +146,11 @@ receivers:
 ```
 
 `send_resolved: false` keeps the resolve notification from counting as a
-second check-in, so one firing is one check-in. Or as an email to
-`YOUR-TIMER-UUID@checkin.triplepat.com`.
+second check-in, so one firing is one check-in.
+
+Alternatively, deliver the alert by email to
+`YOUR-TIMER-UUID@checkin.triplepat.com`, with `send_resolved: false` on the
+`email_configs` entry for the same reason.
 
 ## Sizing the timer
 
