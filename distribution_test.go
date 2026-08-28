@@ -7,11 +7,10 @@ import (
 	"time"
 )
 
-const (
-	samples = 10_000
-	// Kolmogorov-Smirnov critical value at alpha = 0.01 for large N: 1.628 / sqrt(samples).
-	ksCritical = 1.628 / 100
-)
+const samples = 10_000
+
+// ksCritical is the Kolmogorov-Smirnov critical value at alpha = 0.01 for large N.
+var ksCritical = 1.628 / math.Sqrt(samples)
 
 func TestEveryGapLiesWithinBounds(t *testing.T) {
 	alert, err := New(WithMeanInterval(100*time.Second), WithMinInterval(50*time.Second),
@@ -31,16 +30,20 @@ func TestZeroWidthWindowIsPeriodic(t *testing.T) {
 	}
 }
 
-func TestGapSurvivesAMaxHundredsOfMeansAway(t *testing.T) {
-	// exp(-max/mean) underflows to exactly 0 here; a CDF-space draw would hand
-	// log() a zero for the largest random value. Survival-space sampling must
-	// stay finite and in bounds.
-	alert, err := New(WithMeanInterval(time.Second), WithMinInterval(time.Second),
-		WithMaxInterval(1_000_000*time.Second), WithFiringDuration(time.Second/2))
-	noError(t, err)
-	for range samples {
-		if g := alert.gap(); g < time.Second || g > 1_000_000*time.Second {
-			t.Fatalf("gap %v outside bounds", g)
+func TestGapSurvivesAMaxFarBeyondTheMean(t *testing.T) {
+	// exp(-max/mean) goes subnormal around 700 means and is exactly 0 beyond
+	// about 745; a CDF-space draw would hand log() a zero for the largest
+	// random value. Survival-space sampling must stay finite and in bounds in
+	// both regions.
+	for _, ratio := range []int{700, 1_000_000} {
+		maxGap := time.Duration(ratio) * time.Second
+		alert, err := New(WithMeanInterval(time.Second), WithMinInterval(time.Second),
+			WithMaxInterval(maxGap), WithFiringDuration(time.Second/2))
+		noError(t, err)
+		for range samples {
+			if g := alert.gap(); g < time.Second || g > maxGap {
+				t.Fatalf("ratio %d: gap %v outside bounds", ratio, g)
+			}
 		}
 	}
 }
@@ -88,14 +91,13 @@ func TestGapsAreMemoryless(t *testing.T) {
 	alert, err := New()
 	noError(t, err)
 	w := windowOf(alert)
-	mean, lo, hi := w.mean, w.lo, w.hi
 	var last float64
 	for attempt := range 3 {
 		xs := make([]float64, samples)
 		for i := range xs {
 			xs[i] = alert.gap().Seconds()
 		}
-		last = ksStatistic(xs, mean, lo, hi)
+		last = ksStatistic(xs, w.mean, w.lo, w.hi)
 		if last <= ksCritical {
 			return
 		}
@@ -117,16 +119,15 @@ func TestKSRejectsWrongDistributions(t *testing.T) {
 	alert, err := New()
 	noError(t, err)
 	w := windowOf(alert)
-	mean, lo, hi := w.mean, w.lo, w.hi
 	wrong := map[string]func(u float64) float64{
 		// A sampler that clamps instead of truncating piles mass on the bounds.
-		"clamped":  func(u float64) float64 { return min(max(-mean*math.Log(1-u), lo), hi) },
-		"uniform":  func(u float64) float64 { return lo + u*(hi-lo) },
-		"mean+25%": func(u float64) float64 { return truncatedQuantile(u, mean*1.25, lo, hi) },
+		"clamped":  func(u float64) float64 { return min(max(-w.mean*math.Log(1-u), w.lo), w.hi) },
+		"uniform":  func(u float64) float64 { return w.lo + u*(w.hi-w.lo) },
+		"mean+25%": func(u float64) float64 { return truncatedQuantile(u, w.mean*1.25, w.lo, w.hi) },
 	}
 	for name, f := range wrong {
 		t.Run(name, func(t *testing.T) {
-			if d := ksStatistic(quantileGrid(f), mean, lo, hi); d <= ksCritical {
+			if d := ksStatistic(quantileGrid(f), w.mean, w.lo, w.hi); d <= ksCritical {
 				t.Fatalf("K-S failed to reject %s: statistic %.4f", name, d)
 			}
 		})
@@ -137,9 +138,8 @@ func TestKSAcceptsTheRightDistribution(t *testing.T) {
 	alert, err := New()
 	noError(t, err)
 	w := windowOf(alert)
-	mean, lo, hi := w.mean, w.lo, w.hi
-	right := func(u float64) float64 { return truncatedQuantile(u, mean, lo, hi) }
-	if d := ksStatistic(quantileGrid(right), mean, lo, hi); d > ksCritical {
+	right := func(u float64) float64 { return truncatedQuantile(u, w.mean, w.lo, w.hi) }
+	if d := ksStatistic(quantileGrid(right), w.mean, w.lo, w.hi); d > ksCritical {
 		t.Fatalf("K-S rejected the right distribution: statistic %.4f", d)
 	}
 }
