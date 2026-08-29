@@ -5,8 +5,10 @@ on:
     branches:
       - main
   pull_request:
+# contents: write lets the coverage step push the badge to the badges
+# branch; only pushes to main pass it a token, so PR runs stay read-only.
 permissions:
-  contents: read
+  contents: write
 jobs:
   ci:
     name: Lint and Test
@@ -43,3 +45,7 @@ jobs:
         uses: vladopajic/go-test-coverage@v2
         with:
           config: ./.testcoverage.yml
+          # Publish the measured-coverage badge to the badges branch, so the
+          # README badge reports real numbers. Main-branch runs only.
+          git-token: ${{ github.ref == 'refs/heads/main' && secrets.GITHUB_TOKEN || '' }}
+          git-branch: badges
