@@ -1,9 +1,6 @@
-# go-syntheticalert
+[![Go Reference](https://pkg.go.dev/badge/github.com/triple-pat/go-syntheticalert.svg)](https://pkg.go.dev/github.com/triple-pat/go-syntheticalert) [![Lint and Test](https://github.com/Triple-Pat/go-syntheticalert/actions/workflows/ci.yml/badge.svg)](https://github.com/Triple-Pat/go-syntheticalert/actions/workflows/ci.yml) [![Coverage Status](https://coveralls.io/repos/github/Triple-Pat/go-syntheticalert/badge.svg?branch=main)](https://coveralls.io/github/Triple-Pat/go-syntheticalert?branch=main)
 
-[![Lint and Test](https://github.com/Triple-Pat/go-syntheticalert/actions/workflows/ci.yml/badge.svg)](https://github.com/Triple-Pat/go-syntheticalert/actions/workflows/ci.yml)
-[![Coverage](https://raw.githubusercontent.com/Triple-Pat/go-syntheticalert/badges/.badges/main/coverage.svg)](.testcoverage.yml)
-[![Go Reference](https://pkg.go.dev/badge/github.com/triple-pat/go-syntheticalert.svg)](https://pkg.go.dev/github.com/triple-pat/go-syntheticalert)
-[![Release](https://img.shields.io/github/v/release/Triple-Pat/go-syntheticalert)](https://github.com/Triple-Pat/go-syntheticalert/releases)
+# go-syntheticalert
 
 Drive a synthetic alert metric from Go, so a
 [Triple Pat](https://triplepat.com) check-in timer can verify your alerting

@@ -5,10 +5,8 @@ on:
     branches:
       - main
   pull_request:
-# contents: write lets the coverage step push the badge to the badges
-# branch; only pushes to main pass it a token, so PR runs stay read-only.
 permissions:
-  contents: write
+  contents: read
 jobs:
   ci:
     name: Lint and Test
@@ -45,7 +43,11 @@ jobs:
         uses: vladopajic/go-test-coverage@v2
         with:
           config: ./.testcoverage.yml
-          # Publish the measured-coverage badge to the badges branch, so the
-          # README badge reports real numbers. Main-branch runs only.
-          git-token: ${{ github.ref == 'refs/heads/main' && secrets.GITHUB_TOKEN || '' }}
-          git-branch: badges
+      # Feeds the README's Coveralls badge with measured coverage. Main
+      # only: fork PRs get a read-only token and the upload would fail.
+      - name: Coveralls
+        if: github.ref == 'refs/heads/main'
+        uses: coverallsapp/github-action@v2
+        with:
+          file: cover.out
+          format: golang
