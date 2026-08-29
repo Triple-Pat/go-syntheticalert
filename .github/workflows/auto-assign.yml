@@ -1,0 +1,23 @@
+name: Auto-assign
+on:
+  issues:
+    types: [opened]
+  pull_request_target:
+    types: [opened]
+permissions:
+  issues: write
+  pull-requests: write
+jobs:
+  assign:
+    name: Assign to pboothe
+    runs-on: ubuntu-latest
+    steps:
+      # The issues endpoint covers pull requests too, so one step handles
+      # both events. pull_request_target (rather than pull_request) keeps
+      # the token writable for fork PRs; safe because nothing is checked
+      # out or executed from the PR.
+      - name: Add assignee
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMBER: ${{ github.event.issue.number || github.event.pull_request.number }}
+        run: gh api "repos/${{ github.repository }}/issues/${NUMBER}/assignees" -f 'assignees[]=pboothe'
