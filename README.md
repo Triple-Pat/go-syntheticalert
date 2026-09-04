@@ -145,10 +145,11 @@ Create a check-in timer at [Triple Pat](https://triplepat.com), then point
 the alert at it. Prefer email delivery: mail transfer agents queue, retry,
 and try every backend listed in DNS, so a check-in email is more likely to
 arrive than a single webhook request to a single destination. Send to the
-same timer at both the `.com` and `.net` addresses for good measure; extra
-check-ins are harmless. Merge this into your existing Alertmanager config
-(the fragment assumes you already have a default receiver and working
-`smtp_*` defaults):
+same timer at both the `.com` and `.net` addresses. The two domains are
+served by independent DNS providers, so if one zone cannot be resolved the
+other address still delivers, and extra simultaneous check-ins are
+harmless. Merge this into your existing Alertmanager config (the fragment
+assumes you already have a default receiver and working `smtp_*` defaults):
 
 ```yaml
 route:
@@ -170,7 +171,9 @@ receivers:
 extra check-in, so each firing checks in when it starts and not again when
 it resolves.
 
-If you cannot send email, deliver the alert as a webhook instead:
+If you cannot send email, replace the `triplepat` receiver above with this
+webhook receiver instead. Alertmanager rejects a configuration that defines
+the same receiver name twice:
 
 ```yaml
 receivers:
