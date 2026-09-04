@@ -44,10 +44,13 @@ jobs:
         with:
           config: ./.testcoverage.yml
       # Feeds the README's Coveralls badge with measured coverage. Main
-      # only: fork PRs get a read-only token and the upload would fail.
+      # only: fork PRs get a read-only token and the upload would fail. A
+      # Coveralls outage must not redden a run whose lint and tests passed,
+      # hence fail-on-error: false.
       - name: Coveralls
         if: github.ref == 'refs/heads/main'
         uses: coverallsapp/github-action@v2
         with:
           file: cover.out
           format: golang
+          fail-on-error: false
