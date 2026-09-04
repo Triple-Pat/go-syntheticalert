@@ -39,14 +39,11 @@ jobs:
       # --- Tests ---
       - name: Go Tests
         run: go test -race ./... -coverprofile=cover.out
-      - name: Coverage
-        uses: vladopajic/go-test-coverage@v2
-        with:
-          config: ./.testcoverage.yml
-      # Feeds the README's Coveralls badge with measured coverage. Main
-      # only: fork PRs get a read-only token and the upload would fail. A
-      # Coveralls outage must not redden a run whose lint and tests passed,
-      # hence fail-on-error: false.
+      # Feeds the README's Coveralls badge with measured coverage, so it
+      # runs before the coverage gate: the badge shows the real number even
+      # when the gate fails. Main only: fork PRs get a read-only token and
+      # the upload would fail. A Coveralls outage must not redden a run
+      # whose lint and tests passed, hence fail-on-error: false.
       - name: Coveralls
         if: github.ref == 'refs/heads/main'
         uses: coverallsapp/github-action@v2
@@ -54,3 +51,7 @@ jobs:
           file: cover.out
           format: golang
           fail-on-error: false
+      - name: Coverage gate
+        uses: vladopajic/go-test-coverage@v2
+        with:
+          config: ./.testcoverage.yml
