@@ -43,8 +43,8 @@ import (
 // get closer.
 //
 // The schedule advances lazily: nothing happens until Value is called, at
-// which point every transition up to time.Now() is replayed. Value is safe
-// for concurrent use.
+// which point every transition up to time.Now() is replayed, on the
+// monotonic clock. Value is safe for concurrent use.
 type SyntheticAlert struct {
 	next           time.Time
 	mean           time.Duration
@@ -108,6 +108,11 @@ func (a *SyntheticAlert) Value() float64 {
 	// state, keeps the realized schedule identical whatever the scrape cadence.
 	// It costs one loop iteration per elapsed transition, about fifty a day at
 	// the defaults, so even a scrape after a week of silence is trivial.
+	//
+	// time.Now carries a monotonic clock reading, Add preserves it, and
+	// Before compares by it when both times have one, so the schedule runs
+	// on the monotonic clock: a wall-clock step, such as an NTP correction,
+	// neither skips nor repeats a transition.
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	now := time.Now()

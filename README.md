@@ -87,9 +87,9 @@ timer for the larger max. That recovers most of the Poisson behavior; for
 the last few percent, use a mean much longer than the firing duration,
 since the interval between firing starts is the firing plus the gap.
 
-The schedule advances lazily, at scrape time. If nobody scrapes for a
-while, the next scrape replays every transition it missed, so the process
-stays honest whatever your scrape interval.
+The schedule advances lazily, at scrape time, from the monotonic clock. If
+nobody scrapes for a while, the next scrape replays every transition it
+missed, so the process stays honest whatever your scrape interval.
 
 There is no magic here: a handful of lines is a serviceable substitute,
 firing for the first ten minutes of every hour:
