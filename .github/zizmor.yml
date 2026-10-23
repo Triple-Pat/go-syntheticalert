@@ -1,0 +1,4 @@
+rules:
+  unpinned-tools:
+    # Scanners and linters deliberately run at their latest version.
+    disable: true
