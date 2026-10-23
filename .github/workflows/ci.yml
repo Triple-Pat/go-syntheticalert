@@ -44,10 +44,12 @@ jobs:
         uses: golang/govulncheck-action@032d45514ae346b1db93c04b0c90b841c370344f # v1.1.0
         with:
           repo-checkout: false
-          # The action runs its own setup-go, which defaults to 'stable' and
-          # prefers go-version over go-version-file; keep the job on go.mod.
-          go-version-input: ''
-          go-version-file: go.mod
+          # Unlike go/, where go.mod names the toolchain we ship with, a
+          # library's go.mod names the oldest Go it promises to support. Tests
+          # run there; the vulnerability scan runs on current Go, which is
+          # what consumers should be building with, and which current
+          # govulncheck requires.
+          go-version-input: stable
           cache: false
 
       # --- Tests ---
