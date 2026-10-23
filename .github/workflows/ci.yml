@@ -39,19 +39,6 @@ jobs:
       - name: Go Mod Tidy
         run: go mod tidy -diff
 
-      # --- Security ---
-      - name: Govulncheck
-        uses: golang/govulncheck-action@032d45514ae346b1db93c04b0c90b841c370344f # v1.1.0
-        with:
-          repo-checkout: false
-          # Unlike go/, where go.mod names the toolchain we ship with, a
-          # library's go.mod names the oldest Go it promises to support. Tests
-          # run there; the vulnerability scan runs on current Go, which is
-          # what consumers should be building with, and which current
-          # govulncheck requires.
-          go-version-input: stable
-          cache: false
-
       # --- Tests ---
       - name: Go Tests
         run: go test ./... -race -coverprofile=cover.out -timeout=60s
@@ -72,3 +59,17 @@ jobs:
         uses: vladopajic/go-test-coverage@f484eec846448c97c777a26f8b58c5a69a327e12 # v2.20.0
         with:
           config: ./.testcoverage.yml
+
+      # --- Security ---
+      - name: Govulncheck
+        uses: golang/govulncheck-action@032d45514ae346b1db93c04b0c90b841c370344f # v1.1.0
+        with:
+          repo-checkout: false
+          # Unlike go/, where go.mod names the toolchain we ship with, a
+          # library's go.mod names the oldest Go it promises to support. Tests
+          # run there; the vulnerability scan runs on current Go, which is
+          # what consumers should be building with, and which current
+          # govulncheck requires. The action puts its Go first on PATH for
+          # every later step, which is why this section runs last.
+          go-version-input: stable
+          cache: false
