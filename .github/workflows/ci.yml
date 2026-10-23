@@ -12,33 +12,47 @@ jobs:
     name: Lint and Test
     runs-on: ubuntu-latest
     steps:
-      # Checkout first so setup-go can read go.sum for cache keys.
-      - uses: actions/checkout@v7
-      - uses: actions/setup-go@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          go-version: 'stable'
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
           cache: false # a zero-dependency module has no go.sum for the cache key
 
       # --- Linting ---
+      - name: GitHub Actions Lint
+        run: go run github.com/rhysd/actionlint/cmd/actionlint@latest
+      - name: GitHub Actions Security Lint
+        run: pipx run zizmor --format=github .
+        env:
+          GH_TOKEN: ${{ github.token }}
       - name: YAML Lint
-        uses: ibiqlik/action-yamllint@v3
+        uses: ibiqlik/action-yamllint@2576378a8e339169678f9939646ee3ee325e845c # v3.1.1
         with:
           config_file: .yamllint
       - name: Go Lint
-        uses: golangci/golangci-lint-action@v9
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
         with:
           version: latest
           args: --verbose
+      - name: Go Mod Tidy
+        run: go mod tidy -diff
 
       # --- Security ---
       - name: Govulncheck
-        uses: golang/govulncheck-action@v1
+        uses: golang/govulncheck-action@032d45514ae346b1db93c04b0c90b841c370344f # v1.1.0
         with:
           repo-checkout: false
+          # The action runs its own setup-go, which defaults to 'stable' and
+          # prefers go-version over go-version-file; keep the job on go.mod.
+          go-version-input: ''
+          go-version-file: go.mod
+          cache: false
 
       # --- Tests ---
       - name: Go Tests
-        run: go test -race ./... -coverprofile=cover.out
+        run: go test ./... -race -coverprofile=cover.out -timeout=60s
       # Feeds the README's Coveralls badge with measured coverage, so it
       # runs before the coverage gate: the badge shows the real number even
       # when the gate fails. Main only: the badge tracks main, and pull
@@ -47,12 +61,12 @@ jobs:
       # tests passed, hence fail-on-error: false.
       - name: Coveralls
         if: github.ref == 'refs/heads/main'
-        uses: coverallsapp/github-action@v2
+        uses: coverallsapp/github-action@8d6379e14d29928660c4ba802d8e85393440b329 # v2.3.8
         with:
           file: cover.out
           format: golang
           fail-on-error: false
       - name: Coverage gate
-        uses: vladopajic/go-test-coverage@v2
+        uses: vladopajic/go-test-coverage@f484eec846448c97c777a26f8b58c5a69a327e12 # v2.20.0
         with:
           config: ./.testcoverage.yml
