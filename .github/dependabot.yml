@@ -1,0 +1,17 @@
+# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+version: 2
+# No gomod entry: the module has no dependencies, by design, and a
+# dependency must never arrive by bot. GitHub Actions is everything else.
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    # Let a release age a week before it is proposed, so a compromised
+    # release is likely caught upstream first. Security updates skip cooldown.
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns:
+          - "*"
